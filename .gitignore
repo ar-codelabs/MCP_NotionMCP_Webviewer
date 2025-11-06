@@ -1,0 +1,11 @@
+.DS_Store
+**/.DS_Store
+__pycache__/
+*.pyc
+*.pyo
+.env
+.venv/
+*.log
+.pytest_cache/
+# Notion credentials (if you have a separate config file)
+notion_config.json

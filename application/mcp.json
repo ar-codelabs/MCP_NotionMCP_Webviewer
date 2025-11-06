@@ -1,0 +1,35 @@
+{
+    "mcpServers": {
+        "knowledge_base": {
+            "command": "python",
+            "args": ["application/mcp_server_retrieve.py"]
+        },
+        "repl_coder": {
+            "command": "python",
+            "args": ["application/mcp_server_repl_coder.py"]
+        },
+        "business_trip": {
+            "command": "python",
+            "args": ["application/mcp_server_business_trip.py"]
+        },
+        "awslabs.aws-documentation-mcp-server": {
+            "command": "uvx",
+            "args": ["awslabs.aws-documentation-mcp-server@latest"],
+            "env": {
+                "FASTMCP_LOG_LEVEL": "ERROR"
+            }
+        },
+        "pdf_generator": {
+            "command": "python",
+            "args": ["application/mcp_server_pdf_generator.py"]
+        },
+        "notion": {
+            "command": "python",
+            "args": ["application/mcp_server_notion.py"],
+            "env": {
+                "NOTION_API_KEY": "your_notion_api_key_here",
+                "NOTION_PAGE_ID": "your_notion_page_id_here"
+            }
+        }
+    }
+}
