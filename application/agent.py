@@ -368,65 +368,80 @@ async def run_agent(query: str, containers):
     
     containers['status'].info(get_status_msg(f"(start"))  
 
-    # MCP 클라이언트를 사용하여 agent 실행
-    knowledge_base_client = create_mcp_client("knowledge_base")
-    business_trip_client = create_mcp_client("business_trip")
-    notion_client = create_mcp_client("notion")
-    pdf_client = create_mcp_client("pdf_generator")
+    try:
+        # MCP 클라이언트를 사용하여 agent 실행
+        knowledge_base_client = create_mcp_client("knowledge_base")
+        business_trip_client = create_mcp_client("business_trip")
+        notion_client = create_mcp_client("notion")
+        pdf_client = create_mcp_client("pdf_generator")
+        
+        if not all([knowledge_base_client, business_trip_client, notion_client, pdf_client]):
+            raise Exception("MCP 클라이언트 생성 실패")
+            
+    except Exception as e:
+        logger.error(f"MCP 클라이언트 초기화 오류: {e}")
+        containers['status'].error(f"MCP 서버 연결 실패: {e}")
+        return "MCP 서버 연결에 실패했습니다. 환경 설정을 확인해주세요."
     
-    with knowledge_base_client, business_trip_client, notion_client, pdf_client:
-        # Get tools from all MCP servers
-        kb_tools = knowledge_base_client.list_tools_sync()
-        bt_tools = business_trip_client.list_tools_sync()
-        notion_tools = notion_client.list_tools_sync()
-        pdf_tools = pdf_client.list_tools_sync()
-        
-        tools = []
-        tools.extend(kb_tools)
-        tools.extend(bt_tools)
-        tools.extend(notion_tools)
-        tools.extend(pdf_tools)
+    try:
+        with knowledge_base_client, business_trip_client, notion_client, pdf_client:
+            # Get tools from all MCP servers
+            kb_tools = knowledge_base_client.list_tools_sync()
+            bt_tools = business_trip_client.list_tools_sync()
+            notion_tools = notion_client.list_tools_sync()
+            pdf_tools = pdf_client.list_tools_sync()
+            
+            tools = []
+            tools.extend(kb_tools)
+            tools.extend(bt_tools)
+            tools.extend(notion_tools)
+            tools.extend(pdf_tools)
 
-        tool_list = get_tool_list(tools)
-        
-        if chat.debug_mode and containers is not None and tool_list:
-            containers['tools'].info(f"tool_list: {tool_list}")
-        
-        # 매번 새로운 conversation_manager 생성하여 tool_use/tool_result 매칭 문제 방지
-        fresh_conversation_manager = SlidingWindowConversationManager(
-            window_size=5,  # 윈도우 크기 줄여서 메모리 이슈 방지
-        )
-        
-        system_prompt = (
-            "당신의 이름은 현민이고, 질문에 대해 친절하게 답변하는 사려깊은 인공지능 도우미입니다."
-            "상황에 맞는 구체적인 세부 정보를 충분히 제공합니다." 
-            "모르는 질문을 받으면 솔직히 모른다고 말합니다."
-            "\n\n출장 준비와 관련된 질문을 받으면, 다음 순서로 진행합니다:"
-            "1. business_trip 도구들로 종합 가이드 생성:"
-            "   - get_destination_weather: 목적지 날씨 정보"
-            "   - get_destination_info: 국가 기본 정보"
-            "   - analyze_business_culture: 비즈니스 문화 분석"
-            "   - get_packing_recommendations: 짐 추천"
-            "2. 종합 리포트 생성 후 반드시 add_to_notion_page로 자동 저장"
-            "3. Notion 저장 후 전체 내용 표시"
-            "\n'pdf 만들어주세요' 요청 시 generate_business_trip_pdf 도구를 사용하여 "
-            "Summary, Basic Details, Approval Request for Overseas Business Travel, Key Details 섹션이 포함된 "
-            "공식 출장 계획서 PDF를 생성하세요."
-            "\n출장 질문에는 사용자에게 묻지 말고 자동으로 Notion에 저장하세요."
-        )
-        
-        model = get_model()
-        
-        agent = Agent(
-            model=model,
-            system_prompt=system_prompt,
-            tools=tools,
-            conversation_manager=fresh_conversation_manager
-        )
-        
-        agent_stream = agent.stream_async(query)
-        result = await show_streams(agent_stream, containers)
+            tool_list = get_tool_list(tools)
+            
+            if chat.debug_mode and containers is not None and tool_list:
+                containers['tools'].info(f"tool_list: {tool_list}")
+            
+            # 매번 새로운 conversation_manager 생성하여 tool_use/tool_result 매칭 문제 방지
+            fresh_conversation_manager = SlidingWindowConversationManager(
+                window_size=5,  # 윈도우 크기 줄여서 메모리 이슈 방지
+            )
+            
+            system_prompt = (
+                "당신의 이름은 현민이고, 질문에 대해 친절하게 답변하는 사려깊은 인공지능 도우미입니다."
+                "상황에 맞는 구체적인 세부 정보를 충분히 제공합니다." 
+                "모르는 질문을 받으면 솔직히 모른다고 말합니다."
+                "\n\n출장 준비와 관련된 질문을 받으면, 다음 순서로 진행합니다:"
+                "1. business_trip 도구들로 종합 가이드 생성:"
+                "   - get_destination_weather: 목적지 날씨 정보"
+                "   - get_destination_info: 국가 기본 정보"
+                "   - analyze_business_culture: 비즈니스 문화 분석"
+                "   - get_packing_recommendations: 짐 추천"
+                "2. 종합 리포트 생성 후 반드시 add_to_notion_page로 자동 저장"
+                "3. Notion 저장 후 전체 내용 표시"
+                "\n'pdf 만들어주세요' 요청 시 generate_business_trip_pdf 도구를 사용하여 "
+                "Summary, Basic Details, Approval Request for Overseas Business Travel, Key Details 섹션이 포함된 "
+                "공식 출장 계획서 PDF를 생성하세요."
+                "\n출장 질문에는 사용자에게 묻지 말고 자동으로 Notion에 저장하세요."
+            )
+            
+            model = get_model()
+            
+            agent = Agent(
+                model=model,
+                system_prompt=system_prompt,
+                tools=tools,
+                conversation_manager=fresh_conversation_manager
+            )
+            
+            agent_stream = agent.stream_async(query)
+            result = await show_streams(agent_stream, containers)
 
-    logger.info(f"result: {result}")
-    containers['status'].info(get_status_msg(f"end)"))
-    return result
+            logger.info(f"result: {result}")
+            containers['status'].info(get_status_msg(f"end)"))
+            return result
+            
+    except Exception as e:
+        logger.error(f"Agent 실행 오류: {e}")
+        containers['status'].error(f"Agent 실행 실패: {e}")
+        return f"오류가 발생했습니다: {e}"

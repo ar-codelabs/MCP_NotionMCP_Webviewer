@@ -1,130 +1,116 @@
-# 🧳 GenAI Business Trip Agent
+# 📄 Notion Page Viewer
 
-AI 기반 출장 준비 도우미 시스템입니다. 6개의 전문 AI Agent가 협력하여 완벽한 출장 준비 가이드를 제공합니다.
+Notion 페이지의 컨텐츠를 웹에서 볼 수 있는 Streamlit 앱입니다. 직접 API 호출과 MCP 서버 두 가지 방식을 지원합니다.
 
 ## ✨ 주요 기능
 
-### 🤖 6개 전문 AI Agent
-1. **LocationAnalyzer** - 목적지의 날씨, 계절, 기후 특성 분석
-2. **DressCodeAdvisor** - 비즈니스 문화에 맞는 복장 추천  
-3. **QuantityCalculator** - 출장 기간에 따른 정확한 수량 계산
-4. **LocalRequirements** - 전압, 통화, 현지 필수품 안내
-5. **LocalIntelligence** - 교통, 식당, 쇼핑, 응급상황 정보
-6. **ShoppingCoordinator** - 한국/현지 구분 쇼핑 리스트 생성
+### 🔍 **4가지 보기 모드**
+1. **전체 컨텐츠** - 토글, 이미지, 하위 페이지까지 모든 컨텐츠 표시
+2. **제목 + 이미지** - 메인페이지의 제목과 이미지만 표시
+3. **하위 페이지** - 연결된 하위 페이지들의 제목 리스트
+4. **원본 데이터** - JSON 형태의 원본 데이터 (디버깅용)
 
-### 🎯 핵심 특징
-- **Multi-Agent 협업**: 각 전문 분야별 Agent가 협력하여 종합적인 출장 준비 가이드 제공
-- **Strands Agent 기반**: Multi-step reasoning을 통한 향상된 RAG 검색
-- **MCP Server 활용**: Knowledge Base, Code Interpreter 등 다양한 도구 연동
-- **PDF 리포트 생성**: 출장 준비 체크리스트를 PDF로 다운로드
-- **Notion 연동**: 출장 계획을 Notion 페이지로 자동 생성
+### 🏗️ **두 가지 아키텍처**
+- **직접 API 방식**: `app_webview.py` - Notion API를 직접 호출
+- **MCP 서버 방식**: `app_webview_mcp_simple.py` - MCP 서버를 통한 모듈화된 접근
 
 ## 🚀 빠른 시작
 
 ### 1. 설치
 
 ```bash
-git clone https://github.com/ar-codelabs/GenAI_BusinessTrip_Agent.git
-cd genai_businesstrip_agent
+git clone https://github.com/ar-codelabs/MCP_NotionMCP_Webviewer.git
+cd MCP_notion_webviewer
+
+# 설치
 pip install -r requirements.txt
+
 ```
 
-### 2. 환경 설정
+### 2. Notion 설정
 
-`.env` 파일을 생성하고 필요한 환경 변수를 설정하세요:
+1. [Notion Developers](https://developers.notion.com/)에서 Integration 생성
+2. Integration Token 복사
+3. 보고 싶은 Notion 페이지에 Integration 연결
+4. 페이지 ID 복사 (URL에서 추출)
 
-```bash
-cp .env.example .env
-```
+### 3. 설정 파일 수정 (Notion)
 
-`.env` 파일에 다음 정보를 입력:
-```
-# AWS Configuration
-AWS_ACCESS_KEY_ID=your_aws_access_key_id
-AWS_SECRET_ACCESS_KEY=your_aws_secret_access_key
-AWS_REGION=us-west-2
-
-# S3 버킷 (Knowledge Base 연동)
-S3_BUCKET_NAME=your-knowledge-base-bucket
-
-# Notion Integration (Optional)
-NOTION_API_KEY=your_notion_integration_token
-NOTION_PAGE_ID=your_notion_page_id
-
-# 기타 설정
-FASTMCP_LOG_LEVEL=ERROR
-OAUTHLIB_INSECURE_TRANSPORT=1
-```
-
-### 3. 설정 파일 수정
-
-`application/config.json`에서 Knowledge Base ID를 업데이트:
+`application/mcp.json` 파일에서:
 
 ```json
 {
-    "projectName": "genai-business-trip-agent",
-    "region": "us-west-2", 
-    "knowledge_base_id": "YOUR_KNOWLEDGE_BASE_ID"
+  "mcpServers": {
+    "notion": {
+      "command": "python3",
+      "args": ["./application/mcp_server_notion.py"],
+      "env": {
+        "NOTION_API_KEY": "your_notion_integration_token",
+        "NOTION_PAGE_ID": "your_notion_page_id"
+      }
+    }
+  }
 }
 ```
 
 ### 4. 실행
 
 ```bash
-# 통합 앱 실행 (여러 모드 선택 가능)
-streamlit run application/app.py
+streamlit run application/app_webview_mcp_simple.py
 ```
-
-```
-
-## 🛠️ 기술 스택
-
-- **Frontend**: Streamlit
-- **AI Framework**: Strands Agents
-- **LLM**: Claude (Anthropic)
-- **RAG**: AWS Bedrock Knowledge Base
-- **MCP**: Model Context Protocol
-- **Integration**: Notion API
 
 ## 📖 사용 방법
 
-### 1. 출장 준비 시작
-1. 웹 앱에 접속
-2. 출장 목적지와 기간 입력
-3. 출장 목적 선택 (비즈니스 미팅, 컨퍼런스 등)
+### 1. 웹 앱 접속
+- 브라우저에서 `http://localhost:8501` 접속
 
-### 2. AI Agent 분석
-- 각 전문 Agent가 순차적으로 분석 수행
-- 실시간으로 분석 과정 확인 가능
-- 종합적인 출장 준비 가이드 생성
+### 2. 4가지 버튼 활용
+- **🔍 전체 컨텐츠**: 페이지의 모든 내용을 구조적으로 표시
+- **🖼️ 제목 + 이미지**: 제목과 이미지만 깔끔하게 정리해서 표시
+- **📑 하위 페이지**: 연결된 하위 페이지들의 제목 목록과 링크
+- **🔧 원본 데이터**: 개발자용 JSON 데이터 확인
 
-### 3. 결과 활용
-- 체크리스트 PDF 다운로드
-- Notion 페이지 자동 생성
+### 3. 지원하는 Notion 블록
+- 텍스트 (paragraph)
+- 헤딩 (heading_1, heading_2, heading_3)
+- 리스트 (bulleted_list_item, numbered_list_item)
+- 토글 (toggle)
+- 이미지 (image)
+- 코드 (code)
+- 인용문 (quote)
+- 컬럼 (column_list, column)
+- 하위 페이지 (child_page)
 
 ## 🔧 고급 설정
 
-### Knowledge Base 설정
-1. [AWS Bedrock Console](https://console.aws.amazon.com/bedrock/)에서 Knowledge Base 생성
-2. S3에 출장 관련 문서 업로드
-3. Knowledge Base ID를 `config.json`에 설정
+### Notion 페이지 ID 찾기
+1. Notion 페이지 URL: `https://notion.so/페이지제목-abc123def456...`
+2. 마지막 하이픈 뒤의 32자리 문자열이 페이지 ID
+3. 하이픈 제거: `abc123def456...`
 
-### MCP 서버 추가
-`application/mcp.json`에서 새로운 MCP 서버 추가:
 
-```json
-{
-  "mcpServers": {
-    "your_server": {
-      "command": "python",
-      "args": ["path/to/your_mcp_server.py"],
-      "env": {}
-    }
-  }
-}
+### 포트 변경
+```bash
+# MCP 방식
+streamlit run application/app_webview_mcp_simple.py --server.port 8502
 ```
 
-## 📄 라이선스
 
-이 프로젝트는 MIT 라이선스 하에 배포됩니다. 자세한 내용은 `LICENSE` 파일을 참조하세요.
+## 🛠️ 기술 스택
+
+### 공통
+- **Frontend**: Streamlit
+- **API**: Notion API (notion-client)
+- **Language**: Python 3.8+
+
+### MCP 방식 추가
+- **MCP**: Model Context Protocol
+- **Architecture**: Server-Client 분리
+- **Modularity**: 재사용 가능한 MCP 서버
+
+## 📝 주의사항
+
+- Notion Integration에 페이지 읽기 권한이 있어야 합니다
+- 이미지는 Notion의 임시 URL을 사용하므로 일정 시간 후 만료될 수 있습니다
+- 대용량 페이지의 경우 로딩 시간이 길어질 수 있습니다
 
