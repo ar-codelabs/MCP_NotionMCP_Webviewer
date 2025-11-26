@@ -25,7 +25,7 @@ pip install -r requirements.txt
 
 ### 2. Notion 설정
 
-1. [Notion Developers](https://developers.notion.com/)에서 Integration 생성
+1. [developers.notion.com/](https://www.notion.so/profile/integrations))에서 Integration 생성
 2. Integration Token 복사
 3. 보고 싶은 Notion 페이지에 Integration 연결
 4. 페이지 ID 복사 (URL에서 추출)
