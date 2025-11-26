@@ -1,6 +1,6 @@
 # 📄 Notion Page Viewer
 
-Notion 페이지의 컨텐츠를 웹에서 볼 수 있는 Streamlit 앱입니다. 직접 API 호출과 MCP 서버 두 가지 방식을 지원합니다.
+Notion 페이지의 컨텐츠를 웹에서 볼 수 있는 Streamlit 앱입니다. 
 
 ## ✨ 주요 기능
 
@@ -9,10 +9,6 @@ Notion 페이지의 컨텐츠를 웹에서 볼 수 있는 Streamlit 앱입니다
 2. **제목 + 이미지** - 메인페이지의 제목과 이미지만 표시
 3. **하위 페이지** - 연결된 하위 페이지들의 제목 리스트
 4. **원본 데이터** - JSON 형태의 원본 데이터 (디버깅용)
-
-### 🏗️ **두 가지 아키텍처**
-- **직접 API 방식**: `app_webview.py` - Notion API를 직접 호출
-- **MCP 서버 방식**: `app_webview_mcp_simple.py` - MCP 서버를 통한 모듈화된 접근
 
 ## 🚀 빠른 시작
 
@@ -62,7 +58,7 @@ streamlit run application/app_webview_mcp_simple.py
 ## 📖 사용 방법
 
 ### 1. 웹 앱 접속
-- 브라우저에서 `http://localhost:8501` 접속
+- 브라우저에서 접속
 
 ### 2. 4가지 버튼 활용
 - **🔍 전체 컨텐츠**: 페이지의 모든 내용을 구조적으로 표시
